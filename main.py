@@ -1,5 +1,7 @@
 from flask import Flask, jsonify, request
+#importation du module Flask
 app = Flask(__name__)
+#creation d une instance de l application Flask
 
 # Liste d'étudiants
 students = [

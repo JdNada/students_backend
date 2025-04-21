@@ -1,37 +1,51 @@
-from flask import Flask, jsonify, request
-#importation du module Flask
-app = Flask(__name__)
-#creation d une instance de l application Flask
+# main.py
 
-# Liste d'étudiants
-students = [
-    {"id": 1, "name": "Nada", "age": 22},
-    {"id": 2, "name": "Farah", "age": 22},
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List
+
+
+app = FastAPI()
+
+# Autoriser les requêtes du frontend Angular (localhost:4200)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],  # origine Angular
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+# Modèle de données d'un étudiant
+class Student(BaseModel):
+    id: int
+    name: str
+    age: int
+
+# Base de données simulée (liste d'étudiants)
+students_db: List[Student] = [
+    Student(id=1, name="Alice", age=21),
+    Student(id=2, name="Bob", age=22),
+    Student(id=3, name="Charlie", age=23),
 ]
 
-# Route pour obtenir tous les étudiants
-@app.route('/students', methods=['GET'])
+@app.get("/students", response_model=List[Student])
 def get_students():
-#Retourne la liste de tous les étudiants.
-    return jsonify(students)
+    """Retourne tous les étudiants"""
+    return students_db
 
-# Route pour ajouter un nouvel étudiant
-@app.route('/students', methods=['POST'])
-def add_student():
-#Ajoute un nouvel étudiant à la liste.
-    new_student = request.json
-    students.append(new_student)
-    return jsonify(new_student), 201
+@app.post("/students", response_model=Student)
+def add_student(student: Student):
+    """Ajoute un étudiant à la base"""
+    students_db.append(student)
+    return student
 
-# Route pour obtenir un étudiant par son ID
-@app.route('/students/<int:student_id>', methods=['GET'])
-def get_student(student_id):
-#Retourne un étudiant spécifique par son ID.
-    student = next((s for s in students if s['id'] == student_id), None)
-    if student:
-        return jsonify(student)
-    else:
-        return jsonify({"error": "Student not found"})
-
-if __name__ == '__main__':
-    app.run(debug=True)

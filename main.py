@@ -8,10 +8,9 @@ from typing import List
 
 app = FastAPI()
 
-# Autoriser les requêtes du frontend Angular (localhost:4200)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],  # origine Angular
+    allow_origins=["http://localhost:4200"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,9 +32,9 @@ class Student(BaseModel):
 
 # Base de données simulée (liste d'étudiants)
 students_db: List[Student] = [
-    Student(id=1, name="Alice", age=21),
-    Student(id=2, name="Bob", age=22),
-    Student(id=3, name="Charlie", age=23),
+    Student(id=1, name="Farah", age=22),
+    Student(id=2, name="Houyem", age=22),
+    Student(id=3, name="Oumaima", age=22),
 ]
 
 @app.get("/students", response_model=List[Student])

@@ -1,26 +1,21 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship
-from database import Base
+# models.py
+from pydantic import BaseModel
+from typing import List
 
-class Departement(Base):
-    __tablename__ = "departements"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)
-    students = relationship("Student", back_populates="departement")
+class Departement(BaseModel):
+    id: int
+    name: str
 
-class Formation(Base):
-    __tablename__ = "formations"
-    id = Column(Integer, primary_key=True, index=True)
-    theme = Column(String, unique=True, index=True)
-    students = relationship("Student", back_populates="formation")
+class Formation(BaseModel):
+    id: int
+    title: str
 
-class Student(Base):
-    __tablename__ = "students"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    age = Column(Integer)
-    departement_id = Column(Integer, ForeignKey("departements.id"))
-    formation_id = Column(Integer, ForeignKey("formations.id"))
 
-    departement = relationship("Departement", back_populates="students")
-    formation = relationship("Formation", back_populates="students")
+class Student(BaseModel):
+    id: int
+    name: str
+    lastName: str
+    age: int
+    departement_id: int
+    formation_ids: List[int]
+

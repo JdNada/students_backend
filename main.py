@@ -1,50 +1,59 @@
-# main.py
-
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
-
+from fastapi.middleware.cors import CORSMiddleware
+from database import departments_db, formations_db
+from models import Student, Departement, Formation
 
 app = FastAPI()
 
+# Pour autoriser les requêtes Angular (CORS)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],
+    allow_origins=["*"],  # ⚠️ En prod : restreindre l'origine
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-# Modèle de données d'un étudiant
+# Modèle Pydantic
 class Student(BaseModel):
-    id: int
+    id :int
     name: str
+    lastName: str
     age: int
 
-# Base de données simulée (liste d'étudiants)
-students_db: List[Student] = [
-    Student(id=1, name="Farah", age=22),
-    Student(id=2, name="Houyem", age=22),
-    Student(id=3, name="Oumaima", age=22),
-]
+# Simulation d'une "base de données" (en mémoire pour l'exemple)
+students_db: List[Student] = []
 
-@app.get("/students", response_model=List[Student])
-def get_students():
-    """Retourne tous les étudiants"""
-    return students_db
-
-@app.post("/students", response_model=Student)
+# Route pour ajouter un étudiant
+@app.post("/students/", response_model=Student)
 def add_student(student: Student):
-    """Ajoute un étudiant à la base"""
     students_db.append(student)
     return student
+# Route pour supprimer un étudiant par son id
+@app.delete("/students/{student_id}")
+def delete_student(student_id: int):
+    # Recherche l'étudiant avec l'ID spécifié
+    student = next((s for s in students_db if s.id == student_id), None)
 
+    if student is None:
+        raise HTTPException(status_code=404, detail="Étudiant non trouvé")
+
+    # Suppression de l'étudiant de la liste
+    students_db.remove(student)
+    return {"message": f"Étudiant avec l'id {student_id} supprimé"}
+
+# Route pour obtenir la liste des étudiants
+@app.get("/students/", response_model=List[Student])
+def get_students():
+    return students_db
+
+@app.get("/departments", response_model=List[Departement])
+def get_departments():
+    return departments_db
+
+# === ROUTES FORMATIONS ===
+@app.get("/formations", response_model=List[Formation])
+def get_formations():
+    return formations_db
